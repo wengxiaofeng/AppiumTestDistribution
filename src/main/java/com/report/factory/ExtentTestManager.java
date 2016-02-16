@@ -3,7 +3,6 @@ package com.report.factory;
 import com.relevantcodes.extentreports.ExtentReports;
 import com.relevantcodes.extentreports.ExtentTest;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
