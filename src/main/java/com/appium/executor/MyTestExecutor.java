@@ -11,31 +11,39 @@ import org.testng.xml.XmlInclude;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlSuite.ParallelMode;
 import org.testng.xml.XmlTest;
-
 import java.io.FileInputStream;
 import java.io.IOException;
+import com.appium.cucumber.report.HtmlReporter;
+import com.appium.manager.CucumberRunner;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import static java.util.Arrays.asList;
+import java.io.IOException;
 
 public class MyTestExecutor {
 	List<Thread> threads = new ArrayList<Thread>();
 	public static Properties prop = new Properties();
+	public CucumberRunner cucumberRunner = new CucumberRunner();
+	public HtmlReporter htmlReporter = new HtmlReporter();
 
-	@SuppressWarnings("rawtypes")
-	public void distributeTests(int deviceCount, List<Class> testcases) {
+
+	public void distributeTests(int deviceCount, List<String> feature) {
 		ExecutorService executorService = Executors.newFixedThreadPool(deviceCount);
-		for (final Class testFile : testcases) {
+		for (final String featureFile : feature) {
 			executorService.submit(new Runnable() {
 				public void run() {
-					System.out.println("Running test file: " + testFile.getName());
-					testRunnerTestNg(testFile);
-
+					System.out.println("Running test file: " + featureFile + Thread.currentThread().getId());
+					try {
+						cucumberRunner.triggerParallelCukes(featureFile);
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			});
 		}
@@ -46,7 +54,17 @@ public class MyTestExecutor {
 			e.printStackTrace();
 		}
 		System.out.println("ending");
+		try {
+			Thread.sleep(3000);
+			htmlReporter.generateReports();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
+
+	
 
 	@SuppressWarnings("rawtypes")
 	public void parallelTests(int deviceCount, List<Class> testCases) throws InterruptedException {
@@ -134,7 +152,7 @@ public class MyTestExecutor {
 		}
 		for(int i=0;i<deviceCount;i++){
 			XmlTest test = new XmlTest(suite);
-			test.setName("TestNG Test"+i);
+			test.setName("TestNG Test" + i);
 			test.setPreserveOrder("false");
 			List<XmlClass> xmlClasses = new ArrayList<>();
 			for (String className : methods.keySet()) {
@@ -180,14 +198,14 @@ public class MyTestExecutor {
 	private XmlClass createClass(String className, List<Method> methods) {
 		XmlClass clazz = new XmlClass();
 		clazz.setName(className);
-		//clazz.setIncludedMethods(constructIncludes(methods));
+		// clazz.setIncludedMethods(constructIncludes(methods));
 		return clazz;
 	}
 
 
 	private List<XmlInclude> constructIncludes(List<Method> methods) {
 		List<XmlInclude> includes = new ArrayList<>();
-		for(Method m : methods) {
+		for (Method m : methods) {
 			includes.add(new XmlInclude(m.getName()));
 		}
 		return includes;
@@ -196,10 +214,12 @@ public class MyTestExecutor {
 	public Map<String, List<Method>> createTestsMap(Set<Method> methods) {
 		Map<String, List<Method>> testsMap = new HashMap<>();
 		methods.stream().forEach(method -> {
-			List<Method> methodsList = testsMap.get(method.getDeclaringClass().getPackage().getName() + "." + method.getDeclaringClass().getSimpleName());
+			List<Method> methodsList = testsMap.get(method.getDeclaringClass().getPackage().getName() + "."
+					+ method.getDeclaringClass().getSimpleName());
 			if (methodsList == null) {
 				methodsList = new ArrayList<>();
-				testsMap.put(method.getDeclaringClass().getPackage().getName() + "." + method.getDeclaringClass().getSimpleName(), methodsList);
+				testsMap.put(method.getDeclaringClass().getPackage().getName() + "."
+						+ method.getDeclaringClass().getSimpleName(), methodsList);
 			}
 			methodsList.add(method);
 		});
