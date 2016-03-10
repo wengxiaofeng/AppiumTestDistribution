@@ -18,7 +18,6 @@ import org.json.JSONObject;
 import org.json.XML;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.Platform;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -39,8 +38,6 @@ public class AppiumParallelTest extends TestListenerAdapter {
 	public AppiumDriver<MobileElement> driver;
 	CommandPrompt cp = new CommandPrompt();
 	public AppiumManager appiumMan = new AppiumManager();
-
-
 	public InputStream input = null;
 	public String device_udid;
 	public ExtentTest testReporter;

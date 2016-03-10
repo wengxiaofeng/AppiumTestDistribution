@@ -1,5 +1,7 @@
 package com.appium.executor;
 
+import com.appium.cucumber.report.HtmlReporter;
+import com.appium.manager.CucumberRunner;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -11,18 +13,17 @@ import org.testng.xml.XmlInclude;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlSuite.ParallelMode;
 import org.testng.xml.XmlTest;
+
 import java.io.FileInputStream;
 import java.io.IOException;
-import com.appium.cucumber.report.HtmlReporter;
-import com.appium.manager.CucumberRunner;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import static java.util.Arrays.asList;
-import java.io.IOException;
 
 public class MyTestExecutor {
 	List<Thread> threads = new ArrayList<Thread>();
@@ -34,18 +35,16 @@ public class MyTestExecutor {
 	public void distributeTests(int deviceCount, List<String> feature) {
 		ExecutorService executorService = Executors.newFixedThreadPool(deviceCount);
 		for (final String featureFile : feature) {
-			executorService.submit(new Runnable() {
-				public void run() {
-					System.out.println("Running test file: " + featureFile + Thread.currentThread().getId());
-					try {
-						cucumberRunner.triggerParallelCukes(featureFile);
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			});
+			executorService.submit((Runnable) () -> {
+                System.out.println("Running test file: " + featureFile + Thread.currentThread().getId());
+                try {
+                    cucumberRunner.triggerParallelCukes(featureFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
 		}
 		executorService.shutdown();
 		try {
@@ -55,7 +54,7 @@ public class MyTestExecutor {
 		}
 		System.out.println("ending");
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(10000);
 			htmlReporter.generateReports();
 		} catch (IOException e) {
 			e.printStackTrace();
