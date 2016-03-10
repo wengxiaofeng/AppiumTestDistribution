@@ -139,6 +139,9 @@ Your should see report file generated as ExtentReport.html under the target fold
 
 <h2>WIP</h2>
 iOS WebTest using Safari
+
+Run cucumber test ::  mvn clean process-resources -Dtest=CucumberSampleTest test
+
 ## License
 
 ![GNU Public License version 3.0](http://www.gnu.org/graphics/gplv3-127x51.png)

@@ -1,7 +1,6 @@
 package com.appium.manager;
 
 import com.appium.utils.CommandPrompt;
-import org.junit.Test;
 
 import java.io.IOException;
 
@@ -18,7 +17,7 @@ public class CucumberRunner {
     	System.out.println(System.getProperty("user.dir") + "/libs/cucumber-core-1.2.4.jar:");
         String classpPath= System.getProperty("user.dir") + "/target/dependency/*:";
         System.out.println(classpPath);
-        String a = "java -cp " + "\"" + classpPath + "\""+
+        String a = "java -cp " + "\'" + classpPath + "\'"+
                 System.getProperty("user.dir") + "/target/classes:" +
                 System.getProperty("user.dir") + "/target/test-classes" +
                 " cucumber.api.cli.Main " +
@@ -32,8 +31,8 @@ public class CucumberRunner {
     }
 
 
-    @Test
+/*    @Test
     public void testApp() throws IOException, InterruptedException {
         triggerParallelCukes("Basket.feature");
-    }
+    }*/
 }
