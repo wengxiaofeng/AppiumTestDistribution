@@ -32,7 +32,7 @@ public class CucumberRunner {
                 " --plugin json:" + System.getProperty("user.dir") + "/target/" + feature + ".json";
         System.out.println(a);
 
-        String[] a1 = new String[]{ "java", "-cp", classpPath,compileClasses, compileTestClasses, "cucumber.api.cli.Main","--glue com.test.steps",
+        String[] a1 = new String[]{ "java", "-cp", classpPath,compileClasses+compileTestClasses, "cucumber.api.cli.Main --glue com.test.steps",
                 System.getProperty("user.dir") + "/src/test/java/com/cucumber/features/" + feature,
                 "--plugin json:", reportPath};
         Thread.sleep(2000);
