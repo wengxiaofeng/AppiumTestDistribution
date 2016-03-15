@@ -54,7 +54,7 @@ public class MyTestExecutor {
 		}
 		System.out.println("ending");
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(5000);
 			htmlReporter.generateReports();
 		} catch (IOException e) {
 			e.printStackTrace();
