@@ -2,8 +2,10 @@ package com.appium.manager;
 
 import com.appium.utils.CommandPrompt;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 
 /**
@@ -35,11 +37,12 @@ public class CucumberRunner {
                 System.getProperty("user.dir") + "/src/test/java/com/cucumber/features/" + feature,
                 "--plugin json:"+reportPath};
         Thread.sleep(2000);*/
+        System.out.println(a);
             p = Runtime.getRuntime().exec(a);
 
 
         //Wait to get exit value
-/*        try {
+        try {
             p.waitFor();
             final int exitValue = p.waitFor();
             if (exitValue == 0)
@@ -56,7 +59,7 @@ public class CucumberRunner {
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
 
