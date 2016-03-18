@@ -12,7 +12,7 @@
   <body>
     <section class="page-header">
       <h1 class="project-name">AppiumTestDistribution</h1>
-      <h2 class="project-tagline">A tool for running android appium tests in parallel across devices</h2>
+      <h2 class="project-tagline">A tool for running Android and iOS appium tests in parallel across devices</h2>
       <a href="https://github.com/saikrishna321/AppiumTestDistribution" class="btn">View on GitHub</a>
       <a href="https://github.com/saikrishna321/AppiumTestDistribution/zipball/master" class="btn">Download .zip</a>
       <a href="https://github.com/saikrishna321/AppiumTestDistribution/tarball/master" class="btn">Download .tar.gz</a>
@@ -20,12 +20,12 @@
 
     <section class="main-content">
       <h1>
-<a id="appium-parallel-execution-for-android" class="anchor" href="#appium-parallel-execution-for-android" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Appium Parallel Execution for Android</h1>
+<a id="appium-parallel-execution-for-android-and-ios-on-real-devices" class="anchor" href="#appium-parallel-execution-for-android-and-ios-on-real-devices" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Appium Parallel Execution for Android and iOS on Real Devices</h1>
 
 <p><a href="https://gitter.im/saikrishna321/AppiumTestDistribution?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/saikrishna321/AppiumTestDistribution.svg" alt="Join the chat at https://gitter.im/saikrishna321/AppiumTestDistribution"></a></p>
 
 <h2>
-<a id="run-appium-android-test-in-parallel-across-devices-connected" class="anchor" href="#run-appium-android-test-in-parallel-across-devices-connected" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run Appium Android test in parallel across devices connected</h2>
+<a id="run-appium-android-and-ios-test-in-parallel-across-devices-connected" class="anchor" href="#run-appium-android-and-ios-test-in-parallel-across-devices-connected" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run Appium Android and iOS test in parallel across devices connected</h2>
 
 <p><img src="https://raw.githubusercontent.com/saikrishna321/AppiumTestDistribution/master/image/conect1-anim.gif" alt="alt tag"></p>
 
@@ -34,7 +34,7 @@
 <pre><code>&lt;dependency&gt;
     &lt;groupId&gt;com.github.saikrishna321&lt;/groupId&gt;
     &lt;artifactId&gt;AppiumTestDistribution&lt;/artifactId&gt;
-    &lt;version&gt;3.0.3&lt;/version&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 </code></pre>
 
@@ -50,7 +50,7 @@
 <a id="prerequisites" class="anchor" href="#prerequisites" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Prerequisites</h2>
 
 <ol>
-<li>Make sure Appium(1.4.16) is installed through node.</li>
+<li>Make sure Appium(1.4.16) is installed through node and if using the latest appium v1.5 make sure you have it build from the source.</li>
 <li>Make sure adb sdk is set under ANDROID_HOME.</li>
 <li>Install JDK 1.8 and set under path JAVA_HOME to get this framework working.</li>
 </ol>
@@ -85,13 +85,14 @@
 
     @BeforeMethod()
     public void startApp(Method name) throws Exception {
-        startLogResults(name.getName());
+        driver = startAppiumServerInParallel(name.getName());
+            startLogResults(name.getName());
     }
 
     @AfterMethod()
     public void killServer(ITestResult result) {
         endLogTestResults(result);
-        getDriver().resetApp();
+        getDriver().quit();
     }
 
     public AppiumDriver&lt;MobileElement&gt; getDriver() {
@@ -100,12 +101,11 @@
 
     @BeforeClass()
     public void beforeClass() throws Exception {
-        driver = startAppiumServerInParallel(getClass().getSimpleName());
+         startAppiumServer(getClass().getSimpleName());
     }
 
     @AfterClass()
     public void afterClass() throws InterruptedException, IOException {
-        System.out.println("After Class" + Thread.currentThread().getId());
         killAppiumServer();
     }
 }
@@ -119,7 +119,9 @@
 
 </code></pre>
 
-<p>2.Create a config.properties under your test directory, which hold the below properties </p>
+<p>2.Create a config.properties under your test directory, which hold the below properties</p>
+
+<p>For android tests</p>
 
 <pre><code>APP_PATH=/Users/saikrisv/Documents/workspace/TestNGParallel/build/AndroidCalculator.apk
 APP_PACKAGE=com.android2.calculator3
@@ -127,36 +129,53 @@ APP_ACTIVITY=com.android2.calculator3.Calculator
 RUNNER=distribute
 APPIUM_JS_PATH=/usr/local/lib/node_modules/appium/bin/appium.js
 BROWSER_TYPE=chrome
-APP_TYPE=native
+APP_TYPE=androidnative
+PLATFORM=android
 
+</code></pre>
+
+<p>For iOS test</p>
+
+<pre><code>RUNNER=parallel
+APPIUM_JS_PATH=/Users/saikrisv/git/appium_master/appium/build/lib/main.js
+APP_TYPE=iosnative
+PLATFORM=ios
+BUNDLE_ID=com.***.ios
+APP_PATH=ipaFilePath
 </code></pre>
 
 <p>Note: </p>
 
 <ul>
 <li>Provide the absolute path of the apk file.</li>
-<li>APPIUM_JS_PATH should be the location of the appium.js in yout location machine</li>
+<li>APPIUM_JS_PATH should be the location of the appium.js in yout location machine.If your using the latest Appium v1.5 please make sure
+you have the source build locally. Refer the Bug(<a href="https://github.com/appium/appium/issues/6202">https://github.com/appium/appium/issues/6202</a>)</li>
 <li>RUNNER option can be parallel/distribute(Parallel will run  all the tests across device- which helps you to get the device coverage/ Distribute will distribute all the tests across devices which helps you faster execution)</li>
-<li>APP_TYPE should be set to "native" to run native/hybrid tests and "web" to run webtests in chrome.</li>
-<li>Make sure you have chrome browser installed on real devices, if not please download from playstore.</li>
+<li>APP_TYPE should be set to "androidnative/iosnative" to run native/hybrid tests and "web" to run webtests in chrome.</li>
+<li>Make sure you have chrome browser installed on android real devices, if not please download from playstore.</li>
 <li>Make sure you don't use <code>getDriver().resetApp()</code> when your running your webtests.</li>
 </ul>
+
+<h2>
+<a id="credits" class="anchor" href="#credits" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Credits</h2>
+
+<p>Thanks to
+<a href="https://github.com/SrinivasanTarget">@SrinivasanTarget</a> <a href="https://github.com/thote">@thote</a> and <a href="https://github.com/jaydeepc">@jaydeepc</a></p>
 
 <h3>
 <a id="reports" class="anchor" href="#reports" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reports</h3>
 
-<p>Your should see report file generated as ExtentReport.html</p>
-
-<p><img src="https://raw.githubusercontent.com/saikrishna321/AppiumTestDistribution/master/image/report1.jpg" alt="alt tag"></p>
-
-<p><img src="https://raw.githubusercontent.com/saikrishna321/AppiumTestDistribution/master/image/report2.jpg" alt="alt tag"></p>
-
-<p><img src="https://raw.githubusercontent.com/saikrishna321/AppiumTestDistribution/master/image/report3.jpg" alt="alt tag"></p>
+<p>Your should see report file generated as ExtentReport.html under the target folder.</p>
 
 <h3>
 <a id="testrunning-in-distributed-way" class="anchor" href="#testrunning-in-distributed-way" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TestRunning in Distributed Way</h3>
 
-<p><a href="https://www.youtube.com/watch?v=KfMoJ6dSC3g"><img src="http://s29.postimg.org/uln15acdz/Screen_Shot_2016_01_10_at_12_02_10_pm.png" alt="TestRunning in Parallel"></a></p>
+<p><a href="https://www.youtube.com/watch?v=KfMoJ6dSC3g"><img src="http://s29.postimg.org/uln15acdz/Screen_Shot_2016_01_10_at_12_02_10_pm.png" alt="ScreenShot"></a></p>
+
+<h2>
+<a id="wip" class="anchor" href="#wip" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>WIP</h2>
+
+<p>iOS WebTest using Safari</p>
 
 <h2>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
