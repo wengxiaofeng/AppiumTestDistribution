@@ -2,10 +2,10 @@ package com.appium.manager;
 
 import com.appium.utils.CommandPrompt;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -31,48 +31,44 @@ public class CucumberRunner {
                 " cucumber.api.cli.Main " +
                 "--glue com.test.steps " +
                 System.getProperty("user.dir") + "/src/test/java/com/cucumber/features/" + feature +
-                " --plugin json:" + System.getProperty("user.dir") + "/target/" + "Nexus_5_"+feature + ".json";
-        /*a = "/Users/saikrisv/git/AppiumTestDistribution/target/dependency*//*:";
-        String[] a1 = new String[]{"java", "-classpath", "\"" + a +"\""+compileClasses+compileTestClasses, "cucumber.api.cli.Main", "--glue classpath:com.test.steps" ,
-                System.getProperty("user.dir") + "/src/test/java/com/cucumber/features/" + feature,
-                "--plugin json:"+reportPath};
-        Thread.sleep(2000);*/
-        System.out.println(a);
-            p = Runtime.getRuntime().exec(a);
+                " --plugin json:" + System.getProperty("user.dir") + "/target/" + "Nexus5_" + feature + ".json";
+               runCommandThruProcessBuilder(a);
+    }
 
-
-        //Wait to get exit value
-        try {
-            p.waitFor();
-            final int exitValue = p.waitFor();
-            if (exitValue == 0)
-                System.out.println("Successfully executed the command: " + a);
-            else {
-                System.out.println("Failed to execute the following command: " + a + " due to the following error(s):");
-                try (final BufferedReader b = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-                    String line;
-                    if ((line = b.readLine()) != null)
-                        System.out.println(line);
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void runCommandThruProcessBuilder(String command) throws InterruptedException, IOException {
+        List<String> commands = new ArrayList<String>();
+        commands.add("/bin/sh");
+        commands.add("-c");
+        commands.add(command);
+        ProcessBuilder builder = new ProcessBuilder(commands);
+        Map<String, String> environ = builder.environment();
+        final Process process = builder.start();
+        InputStream is = process.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
+        String allLine = "";
+        while ((line = br.readLine()) != null) {
+            allLine = allLine + "" + line + "\n";
+            System.out.println(allLine);
         }
     }
 
-
     public String getAllJars() {
         File[] files = new File("/Users/saikrisv/git/AppiumTestDistribution/target/dependency/").listFiles();
-        StringBuilder str = new StringBuilder(System.getProperty("user.dir")+"/target/dependency/"+files[0].getName()+":");
+        StringBuilder str = new StringBuilder(System.getProperty("user.dir") + "/target/dependency/" + files[0].getName() + ":");
         for (File file : files) {
             if (file.isFile()) {
-                str.append(System.getProperty("user.dir")+"/target/dependency/"+file.getName()+":");
+                str.append(System.getProperty("user.dir") + "/target/dependency/" + file.getName() + ":");
             }
 
         }
         return str.toString();
 
+    }
+
+    public static void main(String args[]) throws IOException, InterruptedException {
+        CucumberRunner cucumberRunner = new CucumberRunner();
+        cucumberRunner.triggerParallelCukes("Basket.feature");
     }
 }
