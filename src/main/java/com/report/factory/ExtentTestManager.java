@@ -39,7 +39,6 @@ public class ExtentTestManager { // new
             + headerName + "</h4><img src=" + imgSrc
             + " style=\"width:100%;height:100%;\"></div></div>";
         extent.setTestRunnerOutput(imgPath);
-
     }
 
     public synchronized static void logVideo(String videoSrc, String headerName) {

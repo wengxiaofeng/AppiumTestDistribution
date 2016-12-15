@@ -1,16 +1,14 @@
 package com.appium.utils;
 
-/**
- * Created by saikrisv on 2016/11/16.
- */
 public enum MobilePlatform {
 
     IOS("IOS"),
-    ANDROID("ANDROID");
+    ANDROID("ANDROID"),
+    AndroidOnLinux("Android On Linux"),
+    AndroidOnWindows("Android On Windows");
 
     public final String platformName;
     MobilePlatform(String platformName) {
         this.platformName = platformName;
     }
-
 }
