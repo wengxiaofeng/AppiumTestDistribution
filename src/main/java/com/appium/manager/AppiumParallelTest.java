@@ -40,10 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AppiumParallelTest extends TestListenerAdapter implements ITestListener {
@@ -119,12 +116,7 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
         ExtentTest extentTest = createParentNodeExtent(methodName, "", category
                 + device_udid.replaceAll("\\W", "_")).assignCategory(tags);
 
-        AppiumServiceBuilder appiumServiceBuilder = checkOSAndStartServer(methodName);
-        if (appiumServiceBuilder != null) {
-            return appiumServiceBuilder;
-        }
-
-        return null;
+        return checkOSAndStartServer(methodName);
     }
 
 
@@ -162,33 +154,23 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
             createParentNodeExtent(methodName, testDescription,
                     category + "_" + device_udid.replaceAll("\\W", "_"));
         }
-        AppiumServiceBuilder webKitPort = checkOSAndStartServer(methodName);
-        if (webKitPort != null) {
-            return webKitPort;
-        }
-        return null;
+
+        return checkOSAndStartServer(methodName);
     }
 
     private AppiumServiceBuilder checkOSAndStartServer(String methodName) throws Exception {
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             if (getMobilePlatform(device_udid).equals(MobilePlatform.IOS)) {
-                AppiumServiceBuilder webKitPort = getAppiumServiceBuilder(methodName);
-                if (webKitPort != null) {
-                    return webKitPort;
-                }
+                String webKitPort = iosDevice.startIOSWebKit(device_udid);
+                return appiumMan.appiumServerForIOS(device_udid, methodName, webKitPort);
             } else {
                 return appiumMan.appiumServerForAndroid(device_udid, methodName);
             }
         } else {
             return appiumMan.appiumServerForAndroid(device_udid, methodName);
         }
-        return null;
     }
 
-    private AppiumServiceBuilder getAppiumServiceBuilder(String methodName) throws Exception {
-        String webKitPort = iosDevice.startIOSWebKit(device_udid);
-        return appiumMan.appiumServerForIOS(device_udid, methodName, webKitPort);
-    }
 
     public void getDeviceCategory() throws Exception {
         if (iosDevice.checkiOSDevice(device_udid)) {
@@ -219,7 +201,7 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
             setAuthorName(methodName);
         }
         Thread.sleep(3000);
-        startingServerInstance(iosCaps, androidCaps);
+        startingServerInstance(Optional.ofNullable(iosCaps), Optional.ofNullable(androidCaps));
         return driver;
     }
 
@@ -266,7 +248,7 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
         }
     }
 
-    public void startingServerInstance(DesiredCapabilities iosCaps, DesiredCapabilities androidCaps)
+    public void startingServerInstance(Optional<DesiredCapabilities> iosCaps, Optional<DesiredCapabilities> androidCaps)
             throws Exception {
         if (prop.getProperty("APP_TYPE").equalsIgnoreCase("web")) {
             driver = new AndroidDriver<>(appiumMan.getAppiumUrl(),
@@ -275,31 +257,25 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
             if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                 if (prop.getProperty("IOS_APP_PATH") != null
                         && iosDevice.checkiOSDevice(device_udid)) {
-                    if (iosCaps == null) {
-                        iosCaps = deviceCapabilityManager.iosNative(device_udid);
-                    }
-                    driver = new IOSDriver<>(appiumMan.getAppiumUrl(), iosCaps);
+                    iosCaps.orElse(deviceCapabilityManager.iosNative(device_udid));
+                    driver = new IOSDriver<>(appiumMan.getAppiumUrl(), iosCaps.get());
                 } else if (!iosDevice.checkiOSDevice(device_udid)) {
-                    if (androidCaps == null) {
-                        androidCaps = deviceCapabilityManager.androidNative(device_udid);
-                    }
-                    driver = new AndroidDriver<>(appiumMan.getAppiumUrl(), androidCaps);
+                    androidCaps.orElse(deviceCapabilityManager.androidNative(device_udid));
+                    driver = new AndroidDriver<>(appiumMan.getAppiumUrl(), androidCaps.get());
                 }
             } else {
-                if (androidCaps == null) {
-                    androidCaps = deviceCapabilityManager.androidNative(device_udid);
-                }
-                driver = new AndroidDriver<>(appiumMan.getAppiumUrl(), androidCaps);
+                androidCaps.orElse(deviceCapabilityManager.androidNative(device_udid));
+                driver = new AndroidDriver<>(appiumMan.getAppiumUrl(), androidCaps.get());
             }
         }
     }
 
     public void startingServerInstance() throws Exception {
-        startingServerInstance(null, null);
+        startingServerInstance(Optional.empty(), Optional.empty());
     }
 
     public void startingServerInstance(DesiredCapabilities caps) throws Exception {
-        startingServerInstance(caps, caps);
+        startingServerInstance(Optional.ofNullable(caps), Optional.ofNullable(caps));
     }
 
     public void startLogResults(String methodName) throws FileNotFoundException {
@@ -333,11 +309,6 @@ public class AppiumParallelTest extends TestListenerAdapter implements ITestList
             iosDevice.destroyIOSWebKitProxy();
         }
         deviceManager.freeDevice(device_udid);
-    }
-
-    public void waitForElement(By id, int time) {
-        WebDriverWait wait = new WebDriverWait(driver, 20);
-        wait.until(ExpectedConditions.elementToBeClickable((id)));
     }
 
     public AppiumDriver<MobileElement> getDriver() {
