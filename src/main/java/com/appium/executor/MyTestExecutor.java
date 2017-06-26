@@ -104,6 +104,7 @@ public class MyTestExecutor {
         int a = 0;
         Collection<URL> urls = ClasspathHelper.forPackage(items.get(a));
         Iterator<URL> iter = urls.iterator();
+        iter.next();
         URL url = iter.next();
         urls.clear();
         for (int i = 0; i < items.size(); i++) {
